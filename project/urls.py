@@ -24,10 +24,10 @@ from missions.views import LastWeekMemoriesView  # /memories/last-week/ 직결
 
 
 urlpatterns = [
-    path("admin/", admin.site.urls),path('user/', include('users.urls')),        # /user/...
+    path("admin/", admin.site.urls),
+    path('user/', include('users.urls')),        # /user/...
     path('missions/', include('missions.urls')), # /missions/...
     path('memories/last-week/', LastWeekMemoriesView.as_view()),  # /memories/last-week/
 ]
-
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

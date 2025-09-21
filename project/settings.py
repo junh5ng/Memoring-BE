@@ -37,6 +37,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
+    "rest_framework",
+
+    "users",
+    "missions"
 ]
 
 MIDDLEWARE = [
@@ -120,3 +125,23 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+MEDIA_URL = '/media/'
+import os
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# DRF: 세션 인증(앱 전용이라 CSRF 패스)
+from rest_framework.authentication import SessionAuthentication
+class CsrfExemptSessionAuthentication(SessionAuthentication):
+    def enforce_csrf(self, request):  # CSRF 검사 생략
+        return
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "project.settings.CsrfExemptSessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",  # 기본은 보호
+    ],
+}
