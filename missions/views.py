@@ -4,11 +4,11 @@ from rest_framework.response import Response
 from rest_framework import status, parsers
 from .models import Mission, UserMission
 from .serializers import MissionSerializer, UserMissionCurrentSerializer
-
+from django.db.models.functions import Random
 
 class MissionCandidatesView(APIView):
     def get(self, request):
-        qs = Mission.objects.filter(is_active=True).order_by('id')[:3]
+        qs = Mission.objects.filter(is_active=True).order_by(Random())[:3]
         return Response(MissionSerializer(qs, many=True).data)
 
 
