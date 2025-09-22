@@ -10,6 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
+import environ
+
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -19,11 +22,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
+
+env = environ.Env(DEBUG=(bool, True))
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-_o-ox(xc9eagck$27ygww)20-_w3@0_*o=*b31xolns)#-hgeh"
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = ['*']
 
@@ -41,12 +48,17 @@ INSTALLED_APPS = [
     "rest_framework",
 
     "users",
-    "missions"
+    "missions",
+
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+
+    "corsheaders.middleware.CorsMiddleware",
+
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -145,3 +157,14 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",  # 기본은 보호
     ],
 }
+
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOWED_ORIGINS = [
+    'http://프론트엔드주소',
+    'https://프론트엔드주소',
+]
