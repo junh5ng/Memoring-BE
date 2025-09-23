@@ -20,14 +20,19 @@ class MissionSelectView(APIView):
         except Mission.DoesNotExist:
             return Response({"detail":"미션을 찾을 수 없습니다."}, status=404)
         um = UserMission.objects.create(user=request.user, mission=m)
-        return Response({"mission_id": um.id, "status": "SELECTED"}, status=201)
+
+        # 상태 포함(IN_PROGRESS)
+        return Response({"mission_id": um.id, "status": um.status}, status=201)
 
 
 class MissionCurrentView(APIView):
     def get(self, request):
+        # 현 로직은 유지
         um = UserMission.objects.filter(user=request.user, given_up=False).order_by('-created_at').first()
         if not um:
             return Response({"has_mission": False})
+        
+        # serializer가 status를 포함하도록 수정
         data = UserMissionCurrentSerializer(um).data
         return Response({"has_mission": True, "mission": data})
 
@@ -47,10 +52,13 @@ class MissionScheduleView(APIView):
         except (TypeError, ValueError):
             pass
         um.save()
+
+        # 상태 포함
         return Response({
             "mission_id": um.id,
             "scheduled_at": um.scheduled_at,
-            "alarm_offset_minutes": um.alarm_offset_minutes
+            "alarm_offset_minutes": um.alarm_offset_minutes,
+            "status": um.status # 추가
         })
 
 
@@ -67,7 +75,9 @@ class MissionVoiceView(APIView):
             return Response({"detail":"file 필요"}, status=400)
         um.voice = file
         um.save()
-        return Response({"mission_id": um.id, "voice_url": um.voice.url}, status=201)
+
+        # 리턴에 상태 포함하도록 수정
+        return Response({"mission_id": um.id, "voice_url": um.voice.url, "status": um.status}, status=201)
 
     def get(self, request, mission_id):
         try:
@@ -76,7 +86,9 @@ class MissionVoiceView(APIView):
             return Response(status=404)
         if not um.voice:
             return Response({"detail":"녹음 없음"}, status=404)
-        return Response({"voice_url": um.voice.url})
+        
+        # 상태 포함 추가
+        return Response({"voice_url": um.voice.url, "status": um.status})
 
 
 class MissionCompleteView(APIView):
@@ -104,8 +116,9 @@ class MissionCompleteView(APIView):
         um.completed_at = timezone.now()
         um.save()
 
+        # COMPLETED 상태 포함
         return Response({
-            "mission_id": um.id, "completed": True,
+            "mission_id": um.id, "completed": True, "status": um.status,
             "entry": {
                 "mood": um.mood, "memo": um.memo,
                 "photo_url": (um.photo.url if um.photo else None),
@@ -123,8 +136,11 @@ class MissionGiveupView(APIView):
         if um.completed:
             return Response({"detail":"이미 완료된 미션입니다."}, status=409)
         um.given_up = True
+        um.completed = False # XOR 보장
         um.save()
-        return Response({"mission_id": um.id, "status": "GIVEN_UP"})
+
+        # 상태 포함
+        return Response({"mission_id": um.id, "status": um.status})
 
 
 class LastWeekMemoriesView(APIView):
