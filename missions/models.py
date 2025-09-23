@@ -31,6 +31,12 @@ class UserMission(models.Model):
         SOSO = 'soso', '보통'
         BAD  = 'bad',  '나쁨'
 
+    # 추가 － 상태 상수 (문자열은 응답에 그대로 쓰임)
+    class MissionStatus(models.TextChoices):
+        IN_PROGRESS = "IN_PROGRESS", "진행 중"
+        COMPLETED   = "COMPLETED",   "완료"
+        GIVEN_UP    = "GIVEN_UP",    "포기"
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='missions')
     mission = models.ForeignKey(Mission, on_delete=models.PROTECT, related_name='user_missions')
 
@@ -71,10 +77,20 @@ class UserMission(models.Model):
         ]
 
     def __str__(self):
-        return f"[{self.user.username}] {self.mission_id} ({'완료' if self.completed else '진행중'})"
-
+        state = "포기" if self.given_up else ("완료" if self.completed else "진행 중")
+        return f"[{self.user.username}] {self.mission_id} ({state})"
+    
     @property
     def voice_uploaded(self): return bool(self.voice)
 
     @property
     def listenable(self): return self.voice_uploaded
+
+    # 추가 - DB 스키마 안 바꾸고 상태를 계산해서 노출
+    @property
+    def status(self) -> str:
+        if self.given_up:
+            return self.MissionStatus.GIVEN_UP
+        if self.completed:
+            return self.MissionStatus.COMPLETED
+        return self.MissionStatus.IN_PROGRESS
