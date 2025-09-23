@@ -15,10 +15,14 @@ class UserMissionCurrentSerializer(serializers.ModelSerializer):
     description = serializers.CharField(source='mission.content', read_only=True)  # 프로토타입: content 재사용
     
     # 모델 속성 그대로 노출
-    voice_uploaded = serializers.SerializerMethodField()
-    listenable = serializers.SerializerMethodField()
-    # status 추가
-    status = serializers.CharField(source="status", read_only=True)
+    #voice_uploaded = serializers.SerializerMethodField()
+    #listenable = serializers.SerializerMethodField()
+    voice_uploaded = serializers.BooleanField(read_only=True)
+    listenable     = serializers.BooleanField(read_only=True)
+    # status 수정
+    status = serializers.CharField(read_only=True)
+
+    #status = serializers.CharField(source="status", read_only=True)
 
     class Meta:
         model = UserMission
